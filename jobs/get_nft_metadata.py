@@ -14,10 +14,10 @@ async def get_item(client, url, asset_id):
         item = resp.json()
 
         if not bool(item["metadata"]):
-            print("Metadata not found for asset #" + str(asset_id))
+            print(f"Metadata not found for asset #{str(asset_id)}")
 
         elif not item["metadata"]["attributes"]:
-            print("No attributes for asset #" + str(asset_id))
+            print(f"No attributes for asset #{str(asset_id)}")
 
         else:
             attributes_raw = item["metadata"]["attributes"]
@@ -27,7 +27,7 @@ async def get_item(client, url, asset_id):
             return attributes_df
 
     except:
-        print("Request failed for asset #" + str(asset_id) + " (retry pending)")
+        print(f"Request failed for asset #{str(asset_id)} (retry pending)")
         attributes_df = pd.DataFrame(columns=["value", "trait_type", "asset_id"])
         attributes_df = attributes_df.append(
             {"value": np.nan, "trait_type": np.nan, "asset_id": asset_id},
@@ -74,7 +74,7 @@ def retry_requests(raw_attributes_filename, api_key, contract_address):
     raw_attributes = raw_attributes[raw_attributes["trait_type"].notnull()]
 
     if len(assets_not_fetched) > 0:
-        print("Retrying for: " + str(assets_not_fetched))
+        print(f"Retrying for: {str(assets_not_fetched)}")
         # Retry with synchronous requests for any failed asset ids
         for asset_id in assets_not_fetched:
             try:
@@ -94,9 +94,9 @@ def retry_requests(raw_attributes_filename, api_key, contract_address):
                 attributes_df["asset_id"] = asset_id
                 attributes_df = attributes_df[["value", "trait_type", "asset_id"]]
                 raw_attributes = raw_attributes.append(attributes_df, ignore_index=True)
-                print("Retry successful for asset #" + str(asset_id))
+                print(f"Retry successful for asset #{asset_id}")
             except Exception as e:
-                print("Retry failed for asset #" + str(asset_id))
+                print(f"Retry failed for asset #{asset_id}")
     else:
         print("All assets fetched.")
 
@@ -111,26 +111,26 @@ def get_metadata_for_collection(api_key, contract_address, output):
     start_token = None
     process_active = True
 
+    # Sometimes requests can randomly fail. Retry 3 times before timing out.
+    retries = 3
     # Loop through collection using pagination tokens until complete
     while process_active:
-        if not start_token:
-            alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/{api_key}/getNFTsForCollection?contractAddress={contract_address}&withMetadata=true&refreshCache=true".format(
+        alchemy_url = (
+            "https://eth-mainnet.g.alchemy.com/v2/{api_key}/getNFTsForCollection?contractAddress={contract_address}&withMetadata=true&refreshCache=true".format(
                 api_key=api_key,
                 contract_address=contract_address,
             )
-        else:
-            alchemy_url = "https://eth-mainnet.g.alchemy.com/v2/{api_key}/getNFTsForCollection?contractAddress={contract_address}&withMetadata=true&refreshCache=true&startToken={start_token}".format(
+            if not start_token
+            else "https://eth-mainnet.g.alchemy.com/v2/{api_key}/getNFTsForCollection?contractAddress={contract_address}&withMetadata=true&refreshCache=true&startToken={start_token}".format(
                 api_key=api_key,
                 contract_address=contract_address,
                 start_token=start_token,
             )
-
+        )
         headers = {
             "Accept": "application/json",
         }
 
-        # Sometimes requests can randomly fail. Retry 3 times before timing out.
-        retries = 3
         for i in range(retries):
             try:
                 r = requests.get(alchemy_url, headers=headers)
@@ -156,12 +156,11 @@ def get_metadata_for_collection(api_key, contract_address, output):
                 except:
                     process_active = False
             except KeyError as e:
-                if i < retries - 1:
-                    print("Alchemy request failed. Retrying request...")
-                    sleep(5)
-                    continue
-                else:
+                if i >= retries - 1:
                     raise
+                print("Alchemy request failed. Retrying request...")
+                sleep(5)
+                continue
             break
 
     # Output attributes data to CSV file

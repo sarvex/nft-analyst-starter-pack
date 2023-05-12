@@ -65,7 +65,7 @@ def export_data(contract_address, alchemy_api_key):
     )
 
     warnings.simplefilter(action="ignore", category=FutureWarning)
-    print("Process started for contract address: " + str(contract_address))
+    print(f"Process started for contract address: {str(contract_address)}")
 
     # Get current timestamp
     right_now = str(datetime.now().timestamp())
@@ -90,7 +90,7 @@ def export_data(contract_address, alchemy_api_key):
     # If update logs exist, read from the saved file and set the start block
     start_block = get_recent_block(updates_csv, contract_address, web3)
 
-    yesterday = datetime.today() - timedelta(days=1)
+    yesterday = datetime.now() - timedelta(days=1)
     _, end_block = eth_service.get_block_range_for_date(yesterday)
 
     # If start_block == end_block, then data is already up to date

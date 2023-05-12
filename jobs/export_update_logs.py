@@ -36,5 +36,3 @@ def export_update_logs(update_log_file, current_block_number=0):
             by="most_recent_block_number", ascending=True, inplace=True
         )
         recent_block_df.to_csv(update_log_file, header=True, index=False)
-    else:
-        pass

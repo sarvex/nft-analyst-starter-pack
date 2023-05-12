@@ -93,21 +93,21 @@ def generate_metadata_output(raw_attributes_file, token_ids_file, output):
     trait_column_names = []
 
     for name in distinct_trait_types:
-        trait_column_names.append(str(name) + "_attribute")
-        trait_column_names.append(str(name))
-        trait_column_names.append(str(name) + "_rarity_score")
-
+        trait_column_names.extend(
+            (f"{str(name)}_attribute", str(name), f"{str(name)}_rarity_score")
+        )
     column_names = base_column_names + trait_column_names
     nft_df.columns = column_names
 
     category_none_scores = category_rarity[["trait_type", "category_none_score"]]
 
     for name in distinct_trait_types:
-        nft_df[str(name) + "_rarity_score"] = nft_df[
-            str(name) + "_rarity_score"
+        nft_df[f"{str(name)}_rarity_score"] = nft_df[
+            f"{str(name)}_rarity_score"
         ].fillna(
             value=category_none_scores.loc[
-                category_none_scores["trait_type"] == name, "category_none_score"
+                category_none_scores["trait_type"] == name,
+                "category_none_score",
             ].iloc[0]
         )
 

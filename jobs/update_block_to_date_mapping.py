@@ -11,7 +11,7 @@ def update_block_to_date_mapping(filename, eth_service):
     print("Updating block-to-date mapping...")
 
     # Find yesterday's date
-    t1 = datetime.today().date() - timedelta(days=1)
+    t1 = datetime.now().date() - timedelta(days=1)
 
     # Read from existing file and find the date last updated
     date_block_mapping_df = pd.read_csv(filename)
@@ -31,7 +31,7 @@ def update_block_to_date_mapping(filename, eth_service):
         date_updated = t1 - timedelta(days=days_prior)
         date_updated_ouput = date_updated.strftime("%Y-%m-%d")
         date_updated_input = (
-            datetime.today() - timedelta(days=1) - timedelta(days=days_prior)
+            datetime.now() - timedelta(days=1) - timedelta(days=days_prior)
         )
 
         date_range = eth_service.get_block_range_for_date(date_updated_input)
@@ -50,5 +50,3 @@ def update_block_to_date_mapping(filename, eth_service):
     # If there are updates, output data to CSV file
     if date_block_mapping["date"].size != 0:
         date_block_mapping.to_csv(filename, header=False, index=False, mode="a")
-    else:
-        pass

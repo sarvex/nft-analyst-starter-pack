@@ -23,5 +23,3 @@ def check_contract_support(alchemy_api_key, contract_address):
             )
             + "See https://docs.alchemy.com/alchemy/enhanced-apis/nft-api#what-nfts-are-supported for more information."
         )
-    else:
-        pass
